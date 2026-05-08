@@ -2,6 +2,10 @@ from flask import Flask
 
 app = Flask(__name__)
 
+# Simple function for unit testing
+def add(a, b):
+    return a + b
+
 @app.route('/')
 def home():
     return "Hello from DevOps CI/CD Pipeline!"
