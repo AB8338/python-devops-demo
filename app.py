@@ -1,10 +1,6 @@
-from flask import Flask
+password = "admin123"
 
-app = Flask(__name__)
+def divide(a,b):
+    return a/b
 
-@app.route('/')
-def home():
-    return "Hello from DevOps CI/CD Pipeline!"
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+print(divide(10,0))
