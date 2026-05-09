@@ -2,11 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube server name configured in Jenkins:
-        // Manage Jenkins -> System -> SonarQube servers
+        // SonarQube server name configured in Jenkins
         SONARQUBE_SERVER = 'sonarqube'
 
-        // Docker Hub image name (must be dockerhub_username/repository)
+        // Docker Hub image name (dockerhub_username/repository)
         IMAGE_NAME = 'abd38/python-devops-demo'
     }
 
@@ -44,7 +43,7 @@ pipeline {
                     sh '''
                         docker run --rm \
                           --network host \
-                          -v "$PWD:/usr/src" \
+                          -v "$WORKSPACE:/usr/src" \
                           sonarsource/sonar-scanner-cli \
                           -Dsonar.projectKey=python-devops-demo \
                           -Dsonar.projectName=python-devops-demo \
@@ -64,9 +63,7 @@ pipeline {
 
         /*
         Optional Quality Gate.
-        Since the SonarScanner is running inside Docker, Jenkins may not
-        always find report-task.txt automatically.
-        Uncomment this stage only if report-task.txt is available.
+        Uncomment only if Jenkins is able to detect report-task.txt.
 
         stage('Quality Gate') {
             steps {
@@ -77,11 +74,37 @@ pipeline {
         }
         */
 
+        stage('Trivy Filesystem Scan') {
+            steps {
+                sh '''
+                    trivy fs \
+                      --scanners vuln \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 1 \
+                      --no-progress \
+                      .
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh '''
                     docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
                     docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+
+        stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                    trivy image \
+                      --scanners vuln \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 1 \
+                      --no-progress \
+                      ${IMAGE_NAME}:${BUILD_NUMBER}
                 '''
             }
         }
