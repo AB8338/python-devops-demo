@@ -54,6 +54,7 @@ pipeline {
                           -Dsonar.python.coverage.reportPaths=coverage.xml \
                           -Dsonar.exclusions=**/__pycache__/**,**/*.pyc \
                           -Dsonar.analysisCache.enabled=false \
+			  -Dsonar.ws.timeout=600 \
                           -Dsonar.host.url=$SONAR_HOST_URL \
                           -Dsonar.token=$SONAR_AUTH_TOKEN
                     '''
